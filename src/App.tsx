@@ -21,9 +21,13 @@ export default function App() {
     try {
       const analysisResult = await analyzePCB(base64, mimeType);
       setResult(analysisResult);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Falha na análise. Certifique-se de que a imagem está clara e tente novamente.");
+      if (err.message?.includes("CONFIG_ERROR")) {
+        setError("ERRO DE CONFIGURAÇÃO: A variável GEMINI_API_KEY não foi encontrada no Vercel.");
+      } else {
+        setError("Falha na análise. Certifique-se de que a imagem está clara e tente novamente.");
+      }
     } finally {
       setLoading(false);
     }

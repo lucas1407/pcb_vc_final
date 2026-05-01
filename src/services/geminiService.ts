@@ -1,6 +1,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getApiKey = () => {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key || key === "MY_GEMINI_API_KEY" || key === "") {
+    return null;
+  }
+  return key;
+};
+
+const apiKey = getApiKey();
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export interface PCBAnalysisResult {
   summary: string;
@@ -22,6 +31,9 @@ export interface PCBAnalysisResult {
 }
 
 export async function analyzePCB(imageData: string, mimeType: string): Promise<PCBAnalysisResult> {
+  if (!ai) {
+    throw new Error("CONFIG_ERROR: Chave de API (GEMINI_API_KEY) não configurada.");
+  }
   const prompt = `Você é uma IA de diagnóstico de PCB de alta precisão. Analise a imagem fornecida de uma Placa de Circuito Impresso.
   
   Tarefas:
