@@ -14,7 +14,7 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
 
   // API Route for PCB analysis - routed directly to the unified handler
-  app.post("/api/analyze-pcb", pcbAnalysisHandler);
+  app.post("/api/analyze-pcb.ts", pcbAnalysisHandler);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
