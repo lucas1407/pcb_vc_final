@@ -16,31 +16,39 @@ app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
 // Helper to check and retrieve Gemini API Key
 const getApiKey = () => {
-  const key = process.env.GEMINI_API_KEY;
+  let key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    return null;
+  }
+  
+  // Clean up any whitespace/newline/carriage returns
+  key = key.trim();
+  
+  // Strip starting/ending quotes if the user pasted them accidentally
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1).trim();
+  }
+
   if (!key || key === "MY_GEMINI_API_KEY" || key === "") {
     return null;
   }
   return key;
 };
 
-// Lazy initialize GoogleGenAI client
-let aiInstance: GoogleGenAI | null = null;
+// Warm instantiator called on each request so key updates take effect live
 const getAiClient = () => {
-  if (!aiInstance) {
-    const key = getApiKey();
-    if (!key) {
-      throw new Error("CONFIG_ERROR: A chave de API do Gemini (GEMINI_API_KEY) não está configurada no servidor.");
-    }
-    aiInstance = new GoogleGenAI({
-      apiKey: key,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
+  const key = getApiKey();
+  if (!key) {
+    throw new Error("CONFIG_ERROR: A chave de API do Gemini (GEMINI_API_KEY) não está configurada no servidor.");
   }
-  return aiInstance;
+  return new GoogleGenAI({
+    apiKey: key,
+    httpOptions: {
+      headers: {
+        "User-Agent": "aistudio-build",
+      },
+    },
+  });
 };
 
 // API Endpoint for PCB Analysis
@@ -75,7 +83,7 @@ app.post("/api/analyze-pcb", async (req, res) => {
   Forneça a análise em formato JSON estrito. Responda tudo em PORTUGUÊS.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-3.5-flash",
       contents: [
         {
           parts: [
