@@ -27,6 +27,10 @@ export async function analyzePCB(imageData: string, mimeType: string): Promise<P
   });
 
   if (!response.ok) {
+    if (response.status === 413) {
+      throw new Error("IMAGEM MUITO GRANDE: O tamanho da imagem excedeu o limite do servidor de rede. Tente uma foto menor ou com menor resolução.");
+    }
+    
     let errorMessage = "Falha no diagnóstico da placa.";
     try {
       const errorData = await response.json();
