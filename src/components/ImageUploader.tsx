@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from 'motion/react';
 interface ImageUploaderProps {
   onImageSelected: (base64: string, mimeType: string) => void;
   isLoading: boolean;
+  preview: string | null;
+  setPreview: (preview: string | null) => void;
 }
 
-export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected, isLoading }) => {
-  const [preview, setPreview] = useState<string | null>(null);
+export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected, isLoading, preview, setPreview }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +29,13 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected, i
     setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // We should also clear input element value if parent resets preview to null
+  React.useEffect(() => {
+    if (!preview && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [preview]);
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">

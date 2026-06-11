@@ -14,6 +14,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PCBAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const handleImageAnalysis = async (base64: string, mimeType: string) => {
     setLoading(true);
@@ -37,6 +38,7 @@ export default function App() {
     setResult(null);
     setError(null);
     setLoading(false);
+    setPreview(null);
   };
 
   return (
@@ -78,7 +80,12 @@ export default function App() {
           </div>
         )}
 
-        <ImageUploader onImageSelected={handleImageAnalysis} isLoading={loading} />
+        <ImageUploader 
+          onImageSelected={handleImageAnalysis} 
+          isLoading={loading} 
+          preview={preview}
+          setPreview={setPreview}
+        />
 
         {loading && (
           <div className="flex flex-col items-center justify-center p-12 space-y-6">

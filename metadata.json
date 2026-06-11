@@ -2,5 +2,5 @@
   "name": "PCB Vision Check",
   "description": "Ferramenta de diagnóstico de PCB alimentada por IA para identificar componentes e detectar danos visíveis.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["vision_analysis"]
+  "majorCapabilities": ["vision_analysis", "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
