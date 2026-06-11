@@ -27,7 +27,7 @@ export default function App() {
       if (err.message?.includes("CONFIG_ERROR")) {
         setError("ERRO DE CONFIGURAÇÃO: A variável GEMINI_API_KEY não foi encontrada no Vercel.");
       } else {
-        setError("Falha na análise. Certifique-se de que a imagem está clara e tente novamente.");
+        setError(`Falha na análise: ${err.message || "Certifique-se de que a imagem está clara e tente novamente."}`);
       }
     } finally {
       setLoading(false);
