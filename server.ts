@@ -75,7 +75,7 @@ app.post("/api/analyze-pcb", async (req, res) => {
   Forneça a análise em formato JSON estrito. Responda tudo em PORTUGUÊS.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-flash-latest",
       contents: [
         {
           parts: [
@@ -145,12 +145,34 @@ app.post("/api/analyze-pcb", async (req, res) => {
     return res.json(parsedResult);
 
   } catch (error: any) {
-    console.error("Erro na análise de PCB server-side:", error);
-    const isConfigError = error.message?.includes("CONFIG_ERROR") || !process.env.GEMINI_API_KEY;
+    console.error("=== ERRO DE CONTA E DIAGNÓSTICO PCB ===");
+    console.error("Error instance:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    
+    const errMsg = error.message || JSON.stringify(error) || "";
+    const isConfigError = errMsg.includes("CONFIG_ERROR") || !process.env.GEMINI_API_KEY;
+    const isInvalidKey = errMsg.includes("API_KEY_INVALID") || 
+                        errMsg.includes("API key not valid") || 
+                        errMsg.includes("Key not valid") || 
+                        errMsg.includes("invalid key") ||
+                        errMsg.includes("400") ||  // common for bad keys in some client frameworks
+                        errMsg.includes("403");
+
+    if (isConfigError) {
+      return res.status(500).json({
+        error: "CONFIG_ERROR: A chave de API do Gemini (GEMINI_API_KEY) não está configurada no servidor."
+      });
+    }
+
+    if (isInvalidKey) {
+      return res.status(500).json({
+        error: "KEY_ERROR: A chave de API do Gemini configurada é inválida ou não pôde ser autenticada (verifique se começa com 'AIzaSy' e não possui espaços extras)."
+      });
+    }
+
     return res.status(500).json({ 
-      error: isConfigError 
-        ? "CONFIG_ERROR: A chave de API do Gemini (GEMINI_API_KEY) não está configurada no servidor."
-        : `Erro no processamento da imagem: ${error.message || error}`
+      error: `Erro no processamento da imagem: ${errMsg}`
     });
   }
 });
