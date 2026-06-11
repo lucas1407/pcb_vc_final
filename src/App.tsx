@@ -14,7 +14,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PCBAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
 
   const handleImageAnalysis = async (base64: string, mimeType: string) => {
     setLoading(true);
@@ -24,18 +23,10 @@ export default function App() {
       setResult(analysisResult);
     } catch (err: any) {
       console.error(err);
-      const errMsg = err.message || "";
-      if (errMsg.includes("CONFIG_ERROR")) {
-        const isVercel = window.location.hostname.includes("vercel.app");
-        if (isVercel) {
-          setError("ERRO DE CONFIGURAÇÃO: A variável GEMINI_API_KEY não foi configurada nas variáveis de ambiente do seu projeto no Vercel.");
-        } else {
-          setError("ERRO DE CONFIGURAÇÃO: A variável GEMINI_API_KEY não está ativa nesta prévia do AI Studio. Adicione-a em Configurações > Secrets (ou Settings > Secrets) para usar a ferramenta.");
-        }
-      } else if (errMsg.includes("KEY_ERROR") || errMsg.includes("invalid key") || errMsg.includes("API_KEY_INVALID") || errMsg.includes("API key not valid")) {
-        setError("CHAVE INVÁLIDA: A chave de API do Gemini (Começando com 'AIzaSy...') é inválida ou expirou. Verifique as configurações de ambiente ou do Vercel.");
+      if (err.message?.includes("CONFIG_ERROR")) {
+        setError("ERRO DE CONFIGURAÇÃO: A variável GEMINI_API_KEY não foi encontrada no Vercel.");
       } else {
-        setError(`Falha na análise: ${errMsg || "Certifique-se de que a imagem está clara e tente novamente."}`);
+        setError("Falha na análise. Certifique-se de que a imagem está clara e tente novamente.");
       }
     } finally {
       setLoading(false);
@@ -46,7 +37,6 @@ export default function App() {
     setResult(null);
     setError(null);
     setLoading(false);
-    setPreview(null);
   };
 
   return (
@@ -88,12 +78,7 @@ export default function App() {
           </div>
         )}
 
-        <ImageUploader 
-          onImageSelected={handleImageAnalysis} 
-          isLoading={loading} 
-          preview={preview}
-          setPreview={setPreview}
-        />
+        <ImageUploader onImageSelected={handleImageAnalysis} isLoading={loading} />
 
         {loading && (
           <div className="flex flex-col items-center justify-center p-12 space-y-6">

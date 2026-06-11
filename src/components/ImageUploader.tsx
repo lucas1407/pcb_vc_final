@@ -5,74 +5,20 @@ import { motion, AnimatePresence } from 'motion/react';
 interface ImageUploaderProps {
   onImageSelected: (base64: string, mimeType: string) => void;
   isLoading: boolean;
-  preview: string | null;
-  setPreview: (preview: string | null) => void;
 }
 
-// Helper to scale and compress an image on the client side using canvas
-const resizeAndCompressImage = (base64Str: string, maxDim: number = 1200, quality: number = 0.85): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      let width = img.width;
-      let height = img.height;
-
-      // Scale dimensions proportionally if they exceed maxDim
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        } else {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(base64Str); // fallback to original if 2D context is unavailable
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      // Export as a compressed JPEG
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-      resolve(compressedDataUrl);
-    };
-
-    img.onerror = (err) => {
-      reject(err);
-    };
-
-    img.src = base64Str;
-  });
-};
-
-export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected, isLoading, preview, setPreview }) => {
+export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected, isLoading }) => {
+  const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = async () => {
+      reader.onloadend = () => {
         const base64 = reader.result as string;
-        // Keep the original high-resolution base64 for local UI preview
         setPreview(base64);
-        
-        try {
-          // Compress the base64 before passing it down for analysis API call
-          const compressedBase64 = await resizeAndCompressImage(base64, 1200, 0.85);
-          onImageSelected(compressedBase64, 'image/jpeg');
-        } catch (err) {
-          console.error("Compression error, sending original:", err);
-          onImageSelected(base64, file.type);
-        }
+        onImageSelected(base64, file.type);
       };
       reader.readAsDataURL(file);
     }
@@ -82,13 +28,6 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected, i
     setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
-  // We should also clear input element value if parent resets preview to null
-  React.useEffect(() => {
-    if (!preview && fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [preview]);
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
